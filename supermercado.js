@@ -273,9 +273,7 @@ function loadProducts() {
         products = JSON.parse(stored);
     } else {
         products = [
-            { id: 1, name: 'Leche', price: 3.50, quantity: 2, bought: false, created: new Date().toISOString() },
-            { id: 2, name: 'Pan', price: 2.00, quantity: 3, bought: true, created: new Date().toISOString() },
-            { id: 3, name: 'Huevos', price: 4.00, quantity: 1, bought: false, created: new Date().toISOString() }
+            
         ];
     }
     render();

@@ -1,124 +1,82 @@
-// ========================================
-// sw.js - Service Worker para OFFLINE (CORREGIDO)
-// ========================================
+const habitInput = document.getElementById("habitInput");
+const addBtn = document.getElementById("addBtn");
+const habitList = document.getElementById("habitList");
+const stats = document.getElementById("stats");
+const progressBar = document.getElementById("progressBar");
 
-const CACHE_NAME = 'habits-v6';
-const urlsToCache = [
-    './',
-    './index.html',
-    './supermercado.html',
-    './style.css',
-    './app.js',
-    './supermercado.js',
-    './manifest.json',
-    './icon-192.png',
-    './icon-512.png',
-    './offline.html'
-];
+let habits = JSON.parse(localStorage.getItem("habits")) || [];
 
-// ===== INSTALACIÓN =====
-self.addEventListener('install', event => {
-    console.log('✅ Service Worker: Instalando...');
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('✅ Cacheando archivos...');
-                return cache.addAll(urlsToCache)
-                    .then(() => {
-                        console.log('✅ Archivos cacheados correctamente');
-                        return self.skipWaiting();
-                    });
-            })
-            .catch(err => {
-                console.error('❌ Error al cachear:', err);
-            })
-    );
+function saveHabits() {
+    localStorage.setItem("habits", JSON.stringify(habits));
+}
+
+function updateStats() {
+    stats.textContent = `${habits.length} hábitos`;
+
+    const completed = habits.filter(h => h.completed).length;
+    const percent = habits.length
+        ? Math.round((completed / habits.length) * 100)
+        : 0;
+
+    progressBar.style.width = `${percent}%`;
+    progressBar.textContent = `${percent}%`;
+}
+
+function renderHabits() {
+    habitList.innerHTML = "";
+
+    habits.forEach((habit, index) => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+            <input type="checkbox" ${habit.completed ? "checked" : ""}>
+            <span style="${habit.completed ? 'text-decoration:line-through' : ''}">
+                ${habit.text}
+            </span>
+            <button>🗑️</button>
+        `;
+
+        const checkbox = li.querySelector("input");
+        const deleteBtn = li.querySelector("button");
+
+        checkbox.addEventListener("change", () => {
+            habits[index].completed = checkbox.checked;
+            saveHabits();
+            renderHabits();
+        });
+
+        deleteBtn.addEventListener("click", () => {
+            habits.splice(index, 1);
+            saveHabits();
+            renderHabits();
+        });
+
+        habitList.appendChild(li);
+    });
+
+    updateStats();
+}
+
+addBtn.addEventListener("click", () => {
+    const text = habitInput.value.trim();
+
+    if (!text) return;
+
+    habits.push({
+        text,
+        completed: false
+    });
+
+    saveHabits();
+    renderHabits();
+
+    habitInput.value = "";
 });
 
-// ===== ACTIVACIÓN =====
-self.addEventListener('activate', event => {
-    console.log('✅ Service Worker: Activando...');
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cache => {
-                    if (cache !== CACHE_NAME) {
-                        console.log('🗑️ Eliminando caché antiguo:', cache);
-                        return caches.delete(cache);
-                    }
-                })
-            );
-        }).then(() => {
-            console.log('✅ Service Worker activado');
-            return self.clients.claim();
-        })
-    );
-});
-
-// ===== FETCH (CON FILTRO PARA EVITAR ERRORES) =====
-self.addEventListener('fetch', event => {
-    const request = event.request;
-    
-    // ✅ IGNORAR SOLICITUDES QUE NO SE PUEDEN CACHEAR
-    // Ignorar extensiones de Chrome, chrome-extension://, etc.
-    if (request.url.startsWith('chrome-extension://')) {
-        return;
-    }
-    
-    // Ignorar solicitudes a extensiones de navegador
-    if (request.url.includes('extension')) {
-        return;
-    }
-    
-    // Ignorar solicitudes que no son HTTP/HTTPS
-    if (!request.url.startsWith('http://') && !request.url.startsWith('https://')) {
-        return;
-    }
-
-    event.respondWith(
-        caches.match(request)
-            .then(response => {
-                if (response) {
-                    return response;
-                }
-                
-                return fetch(request)
-                    .then(networkResponse => {
-                        // Solo cachear respuestas exitosas
-                        if (networkResponse && networkResponse.status === 200) {
-                            const clone = networkResponse.clone();
-                            caches.open(CACHE_NAME)
-                                .then(cache => {
-                                    try {
-                                        cache.put(request, clone);
-                                    } catch (error) {
-                                        // Ignorar errores al cachear
-                                        console.log('⚠️ No se pudo cachear:', request.url);
-                                    }
-                                })
-                                .catch(() => {
-                                    // Ignorar errores
-                                });
-                        }
-                        return networkResponse;
-                    })
-                    .catch(() => {
-                        // Si falla la red, devolver página offline
-                        if (request.headers.get('accept')?.includes('text/html')) {
-                            return caches.match('./offline.html');
-                        }
-                        return new Response('Error: Recurso no disponible offline', {
-                            status: 503,
-                            statusText: 'Service Unavailable'
-                        });
-                    });
-            })
-    );
-});
-
-// ===== MENSAJES (para comunicación con la app) =====
-self.addEventListener('message', event => {
-    if (event.data === 'skipWaiting') {
-        self.skipWaiting();
+habitInput.addEventListener("keypress", e => {
+    if (e.key === "Enter") {
+        addBtn.click();
     }
 });
+
+renderHabits();
