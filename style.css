@@ -291,6 +291,10 @@ h1 {
     min-height: 100px;
 }
 
+/* ============================================ */
+/* ===== HABIT-ITEM CON ANIMACIONES ===== */
+/* ============================================ */
+
 .habit-item {
     background: white;
     padding: 16px 20px;
@@ -299,27 +303,44 @@ h1 {
     justify-content: space-between;
     align-items: center;
     border: 2px solid #e5e7eb;
-    transition: all 0.3s;
-    animation: slideIn 0.3s ease;
     cursor: default;
     user-select: none;
+    position: relative;
+    touch-action: none;
+    
+    /* 🔥 ANIMACIÓN DE ENTRADA (IGUAL QUE SUPERMERCADO) */
+    animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    /* 🔥 TRANSICIÓN SUAVE PARA HOVER Y CAMBIOS */
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Efecto hover (igual que supermercado) */
 .habit-item:hover {
     border-color: #c7d2fe;
+    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
 }
 
+/* Estado COMPLETADO */
 .habit-item.completed {
     background: #f0fdf4;
     border-color: #86efac;
-    opacity: 0.8;
 }
 
 .habit-item.completed .habit-text {
     text-decoration: line-through;
     color: #6b7280;
 }
+
+/* 🔥 ANIMACIÓN DE ELIMINACIÓN (IGUAL QUE SUPERMERCADO) */
+.habit-item.deleting {
+    animation: slideOut 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ============================================ */
+/* ===== CONTENIDO DEL ITEM ===== */
+/* ============================================ */
 
 .habit-content {
     display: flex;
@@ -337,6 +358,11 @@ h1 {
     padding: 4px 0;
     flex: 1;
     min-width: 120px;
+    transition: all 0.2s;
+}
+
+.habit-text:hover {
+    color: #4F46E5;
 }
 
 .habit-text:active {
@@ -385,11 +411,13 @@ h1 {
     transition: all 0.3s;
     border-radius: 8px;
     line-height: 1;
+    flex-shrink: 0;
 }
 
 .delete-btn:hover {
     color: #ef4444;
     background: #fee2e2;
+    transform: scale(1.1);
 }
 
 .delete-btn:active {
@@ -564,18 +592,35 @@ footer p {
     color: #ef4444;
 }
 
-/* ===== ANIMACIONES ===== */
+/* ============================================ */
+/* ===== TODAS LAS ANIMACIONES ===== */
+/* ============================================ */
+
+/* 🔥 ANIMACIÓN DE ENTRADA (AGREGAR) */
 @keyframes slideIn {
     from {
         opacity: 0;
-        transform: translateX(-20px) scale(0.95);
+        transform: translateY(-20px) scale(0.95);
     }
     to {
         opacity: 1;
-        transform: translateX(0) scale(1);
+        transform: translateY(0) scale(1);
     }
 }
 
+/* 🔥 ANIMACIÓN DE SALIDA (ELIMINAR) */
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100px) scale(0.8);
+    }
+}
+
+/* 🔥 ANIMACIÓN PARA MODAL */
 @keyframes slideUp {
     from {
         opacity: 0;
@@ -587,9 +632,44 @@ footer p {
     }
 }
 
+/* 🔥 ANIMACIÓN PARA FADE */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/* 🔥 ANIMACIÓN PARA TOAST (BARRA DE PROGRESO) */
+@keyframes toastProgress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* ============================================ */
+/* ===== TOAST ===== */
+/* ============================================ */
+
+.toast-notification {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    padding: 16px 24px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 90%;
+    min-width: 280px;
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-family: system-ui, -apple-system, sans-serif;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    pointer-events: none;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -658,6 +738,19 @@ footer p {
         font-size: 0.9rem;
         padding: 12px 16px;
     }
+
+    /* Ajustes para móvil */
+    .habit-item {
+        padding: 12px 14px;
+    }
+
+    .habit-text {
+        font-size: 0.95rem;
+    }
+
+    .habit-meta {
+        font-size: 0.6rem;
+    }
 }
 
 @media (max-width: 400px) {
@@ -667,14 +760,20 @@ footer p {
     }
 
     .habit-item {
-        padding: 12px 14px;
+        padding: 10px 12px;
     }
 
     .habit-text {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        min-width: 80px;
     }
 
     .habit-meta {
-        font-size: 0.6rem;
+        font-size: 0.55rem;
+    }
+
+    .delete-btn {
+        font-size: 1.2rem;
+        padding: 0 4px;
     }
 }
