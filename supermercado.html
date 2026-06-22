@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Lista de Compras</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#10b981">
+</head>
+<body>
+    <div id="connectionStatus" style="
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    z-index: 9999;
+    background: #10b981;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    display: none;
+">
+    🟢 En línea
+</div>
+    <div id="app">
+        <!-- HEADER -->
+        <header>
+            <h1>🛒 Lista de Compras</h1>
+            <div class="super-stats">
+                <span id="totalItems">0 items</span>
+                <span id="totalCost">$0.00</span>
+            </div>
+        </header>
+
+        <!-- NAVEGACIÓN -->
+        <nav class="main-nav">
+            <a href="index.html" class="nav-link">
+                <span class="nav-icon">🏠</span>
+                <span>Hábitos</span>
+            </a>
+            <a href="supermercado.html" class="nav-link active">
+                <span class="nav-icon">🛒</span>
+                <span>Supermercado</span>
+            </a>
+            <button id="openExportMenu" class="nav-link">
+                <span class="nav-icon">📦</span>
+                <span>Exportar</span>
+            </button>
+        </nav>
+
+        <main>
+            <!-- FORMULARIO PARA AGREGAR PRODUCTO -->
+            <section id="super-form-section">
+                <div class="super-form-row">
+                    <input type="text" id="productInput" placeholder="Nombre del producto..." class="super-input">
+                    <input type="number" id="priceInput" placeholder="Precio" class="super-input small" step="0.01">
+                    <input type="number" id="quantityInput" placeholder="Cant." class="super-input tiny" value="1" min="1">
+                    <button id="addProductBtn" class="super-add-btn">➕</button>
+                </div>
+            </section>
+
+            <!-- FILTROS -->
+            <section id="super-filter-section">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">📋 Todos</button>
+                    <button class="filter-btn" data-filter="pending">⏳ Pendientes</button>
+                    <button class="filter-btn" data-filter="bought">✅ Comprados</button>
+                </div>
+                <input type="text" id="superSearchInput" placeholder="🔍 Buscar productos...">
+            </section>
+
+            <!-- LISTA DE PRODUCTOS -->
+            <section id="super-list-section">
+                <ul id="productList"></ul>
+            </section>
+
+            <!-- RESUMEN DE COSTOS -->
+            <section id="summary-section">
+                <div class="summary-card">
+                    <div class="summary-item">
+                        <span>Total de productos:</span>
+                        <span id="summaryTotal">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Costo total:</span>
+                        <span id="summaryCost">$0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Pendientes:</span>
+                        <span id="summaryPending">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Comprados:</span>
+                        <span id="summaryBought">0</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- MODAL DE EXPORTACIÓN -->
+        <div id="exportModal" class="modal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h2>📦 Gestión de Datos</h2>
+                <div class="modal-buttons">
+                    <button id="exportSuperBtn" class="modal-btn export">📤 Exportar Compras</button>
+                    <label for="importSuperInput" class="modal-btn import">
+                        📥 Importar Compras
+                        <input type="file" id="importSuperInput" accept=".json" style="display: none;">
+                    </label>
+                    <button id="resetSuperBtn" class="modal-btn reset">🔄 Resetear Lista</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer>
+            <p>
+                <span id="footerStats">0 items</span> • 
+                💾 Guardado automático
+            </p>
+        </footer>
+    </div>
+
+    <script>
+    const statusEl = document.getElementById('connectionStatus');
+    
+    function updateConnectionStatus() {
+        if (navigator.onLine) {
+            statusEl.textContent = '🟢 En línea';
+            statusEl.style.background = '#10b981';
+            statusEl.style.display = 'block';
+            clearTimeout(window.statusTimeout);
+            window.statusTimeout = setTimeout(() => {
+                statusEl.style.opacity = '0';
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                    statusEl.style.opacity = '1';
+                }, 500);
+            }, 3000);
+        } else {
+            statusEl.textContent = '🔴 Sin conexión';
+            statusEl.style.background = '#ef4444';
+            statusEl.style.display = 'block';
+            statusEl.style.opacity = '1';
+        }
+    }
+    
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+    updateConnectionStatus();
+</script>
+    <!-- SCRIPTS -->
+    <script src="supermercado.js"></script>
+    <script>
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('✅ Service Worker registrado'))
+                    .catch(err => console.error('❌ Error SW:', err));
+            });
+        }
+
+        // Modal de exportación
+        const modal = document.getElementById('exportModal');
+        const openBtn = document.getElementById('openExportMenu');
+        const closeBtn = document.querySelector('.modal-close');
+
+        openBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

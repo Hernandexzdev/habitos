@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sin conexión</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8ecf8 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .offline-container {
+            max-width: 400px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            padding: 40px 28px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        
+        .offline-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        h1 {
+            color: #1f2937;
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+        }
+        
+        p {
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        
+        .offline-btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #4F46E5, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .offline-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(79, 70, 229, 0.3);
+        }
+        
+        .offline-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .retry-info {
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-dot.offline {
+            background: #ef4444;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+        <div id="connectionStatus" style="
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        z-index: 9999;
+        background: #10b981;
+        color: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    ">
+        🟢 En línea
+    </div>
+    <div class="offline-container">
+        <span class="offline-icon">📡</span>
+        <h1>Sin conexión</h1>
+        <p>
+            No tienes acceso a internet en este momento.<br>
+            <strong>No te preocupes</strong>, tu lista de hábitos 
+            y compras están guardadas localmente.
+        </p>
+        
+        <button class="offline-btn" onclick="window.location.reload()">
+            🔄 Reintentar
+        </button>
+        
+        <div class="retry-info">
+            <span class="status-dot offline"></span>
+            Modo offline activo
+        </div>
+    </div>
+        <script>
+        // ===== DETECTAR CAMBIOS DE CONEXIÓN =====
+        const statusEl = document.getElementById('connectionStatus');
+        
+        function updateConnectionStatus() {
+            if (navigator.onLine) {
+                statusEl.textContent = '🟢 En línea';
+                statusEl.style.background = '#10b981';
+                statusEl.style.display = 'block';
+                
+                // Ocultar después de 3 segundos
+                clearTimeout(window.statusTimeout);
+                window.statusTimeout = setTimeout(() => {
+                    statusEl.style.opacity = '0';
+                    setTimeout(() => {
+                        statusEl.style.display = 'none';
+                        statusEl.style.opacity = '1';
+                    }, 500);
+                }, 3000);
+            } else {
+                statusEl.textContent = '🔴 Sin conexión';
+                statusEl.style.background = '#ef4444';
+                statusEl.style.display = 'block';
+                statusEl.style.opacity = '1';
+            }
+        }
+        
+        // Detectar cambios
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Verificar al cargar
+        updateConnectionStatus();
+    </script>
+    
+    <script>
+        // Detectar cuando vuelva la conexión
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+        
+        // Detectar si el usuario quiere intentar de nuevo
+        document.querySelector('.offline-btn').addEventListener('click', () => {
+            if (navigator.onLine) {
+                window.location.href = '/';
+            } else {
+                alert('📡 Aún no tienes conexión a internet.');
+            }
+        });
+    </script>
+</body>
+</html>

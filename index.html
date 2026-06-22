@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mis Hábitos</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+    <meta name="description" content="Sigue tus hábitos diarios con esta PWA">
+</head>
+<body>
+    <div id="app">
+        <!-- HEADER -->
+        <header>
+            <h1>✅ Mis Hábitos</h1>
+            <div id="progressContainer">
+                <div id="progressBar" style="width: 0%">0%</div>
+            </div>
+        </header>
+
+        <!-- NAVEGACIÓN -->
+        <nav class="main-nav">
+            <a href="index.html" class="nav-link active">
+                <span class="nav-icon">🏠</span>
+                <span>Hábitos</span>
+            </a>
+            <a href="supermercado.html" class="nav-link">
+                <span class="nav-icon">🛒</span>
+                <span>Supermercado</span>
+            </a>
+            <button id="openExportMenu" class="nav-link">
+                <span class="nav-icon">📦</span>
+                <span>Exportar</span>
+            </button>
+        </nav>
+
+        <main>
+            <!-- FORMULARIO PARA AGREGAR -->
+            <section id="form-section">
+                <input type="text" id="habitInput" placeholder="Escribe un nuevo hábito..." autofocus>
+                <button id="addBtn">➕ Agregar</button>
+            </section>
+
+            <!-- FILTROS Y BÚSQUEDA -->
+            <section id="filter-section">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">📋 Todos</button>
+                    <button class="filter-btn" data-filter="pending">⏳ Pendientes</button>
+                    <button class="filter-btn" data-filter="completed">✅ Completados</button>
+                </div>
+                <input type="text" id="searchInput" placeholder="🔍 Buscar hábitos...">
+            </section>
+
+            <!-- LISTA DE HÁBITOS -->
+            <section id="list-section">
+                <ul id="habitList"></ul>
+            </section>
+        </main>
+
+        <!-- MODAL DE EXPORTACIÓN -->
+        <div id="exportModal" class="modal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h2>📦 Gestión de Datos</h2>
+                <div class="modal-buttons">
+                    <button id="exportBtn" class="modal-btn export">📤 Exportar Hábitos</button>
+                    <label for="importInput" class="modal-btn import">
+                        📥 Importar Hábitos
+                        <input type="file" id="importInput" accept=".json" style="display: none;">
+                    </label>
+                    <button id="statsBtn" class="modal-btn stats">📊 Estadísticas</button>
+                    <button id="resetBtn" class="modal-btn reset">🔄 Resetear Datos</button>
+                    <button id="exportSuperBtn" class="modal-btn export">📤 Exportar Compras</button>
+                    <button id="importSuperBtn" class="modal-btn import">📥 Importar Compras</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer>
+            <p>
+                <span id="stats">0 hábitos</span> • 
+                💾 Backup automático • 
+                <span id="dbStatus">🟢 Activo</span>
+            </p>
+        </footer>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="app.js"></script>
+    <script>
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('✅ Service Worker registrado'))
+                    .catch(err => console.error('❌ Error SW:', err));
+            });
+        }
+
+        // Modal de exportación
+        const modal = document.getElementById('exportModal');
+        const openBtn = document.getElementById('openExportMenu');
+        const closeBtn = document.querySelector('.modal-close');
+
+        openBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
